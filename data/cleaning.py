@@ -36,12 +36,29 @@ def clean_dataframe(df, config):
 # config = load_config()
 # clean_df = clean_dataframe(df, config)
 
+def keep_only_columns(df, to_keep):
+    """
+    Keep only specified columns in a dataframe.
+    
+    Args:
+        df (pandas.DataFrame): The input dataframe
+        to_keep (list): List of column names to keep
+        
+    Returns:
+        pandas.DataFrame: Dataframe with only the specified columns
+    """
+    # Filter to only include columns in to_keep that exist in df
+    valid_cols = [col for col in to_keep if col in df.columns]
+    
+    # Return dataframe with only those columns
+    return df[valid_cols]
+
 def drop_empty_rows_and_columns(df):
   # Dropping all empty columns
-  df = df.dropna(axis=1, how='all');
+  df = df.dropna(axis=1, how='all')
 
   # Dropping all empty rows
-  df = df.dropna(axis=0, how='all');
+  df = df.dropna(axis=0, how='all')
 
 def clean_text_columns(df):
     """
@@ -69,14 +86,14 @@ def clean_text_columns(df):
     
     return cleaned_df
 
-def replace_by_dictionary(df, columns, replacement_dict):
+def replace_by_dictionary(df, replacement_dict, columns):
     """
     Replace values in a DataFrame column based on a dictionary mapping.
 
     Parameters:
     df (pandas.DataFrame): DataFrame containing the state column(s)
-    columns (str or list): Column name or list of column names containing state information
     replacement_dict (dict): Mapping from stings to replacements
+    columns (str or list): Column name or list of column names containing state information
     
     Returns:
     pandas.DataFrame: DataFrame with standardized state codes
@@ -93,84 +110,6 @@ def replace_by_dictionary(df, columns, replacement_dict):
     for column in columns:
         df_copy[column] = df_copy[column].apply(
             lambda x: replacement_dict.get(x, x) if isinstance(x, str) else x
-        )
-    
-    return df_copy
-
-def standardize_state_codes(df, columns):
-    """
-    Standardize state names in one or more DataFrame columns to two-letter codes.
-    
-    Parameters:
-    df (pandas.DataFrame): DataFrame containing the state column(s)
-    columns (str or list): Column name or list of column names containing state information
-    
-    Returns:
-    pandas.DataFrame: DataFrame with standardized state codes
-    """
-    # Dictionary mapping state names to their two-letter codes
-    state_mapping = {
-        'alabama': 'al', 'alaska': 'ak', 'arizona': 'az', 'arkansas': 'ar',
-        'california': 'ca', 'colorado': 'co', 'connecticut': 'ct', 'delaware': 'de',
-        'florida': 'fl', 'georgia': 'ga', 'hawaii': 'hi', 'idaho': 'id',
-        'illinois': 'il', 'indiana': 'in', 'iowa': 'ia', 'kansas': 'ks',
-        'kentucky': 'ky', 'louisiana': 'la', 'maine': 'me', 'maryland': 'md',
-        'massachusetts': 'ma', 'michigan': 'mi', 'minnesota': 'mn', 'mississippi': 'ms',
-        'missouri': 'mo', 'montana': 'mt', 'nebraska': 'ne', 'nevada': 'nv',
-        'new hampshire': 'nh', 'new jersey': 'nj', 'new mexico': 'nm', 'new york': 'ny',
-        'north carolina': 'nc', 'north dakota': 'nd', 'ohio': 'oh', 'oklahoma': 'ok',
-        'oregon': 'or', 'pennsylvania': 'pa', 'rhode island': 'ri', 'south carolina': 'sc',
-        'south dakota': 'sd', 'tennessee': 'tn', 'texas': 'tx', 'utah': 'ut',
-        'vermont': 'vt', 'virginia': 'va', 'washington': 'wa', 'west virginia': 'wv',
-        'wisconsin': 'wi', 'wyoming': 'wy', 'district of columbia': 'dc'
-    }
-    
-    # Create a copy of the DataFrame to avoid modifying the original
-    df_copy = df.copy()
-    
-    # Handle both single column name and list of column names
-    if isinstance(columns, str):
-        columns = [columns]
-    
-    # Apply the mapping to convert state names to codes for each column
-    for column in columns:
-        df_copy[column] = df_copy[column].apply(
-            lambda x: state_mapping.get(x, x) if isinstance(x, str) else x
-        )
-    
-    return df_copy
-
-def standardize_hr_yr(df, columns):
-    """
-    Standardize state hourly and yearly abbreviations in one or more DataFrame columns to hr yr.
-    
-    Parameters:
-    df (pandas.DataFrame): DataFrame containing the state column(s)
-    columns (str or list): Column name or list of column names containing state information
-    
-    Returns:
-    pandas.DataFrame: DataFrame with standardized state codes
-    """
-    # Dictionary mapping state names to their two-letter codes
-    state_mapping = {
-        'hour': 'hr', 
-        'year': 'yr', 
-        'week': 'wk',
-        'bi-weekly': 'bi',
-        'month': 'mth',
-    }
-    
-    # Create a copy of the DataFrame to avoid modifying the original
-    df_copy = df.copy()
-    
-    # Handle both single column name and list of column names
-    if isinstance(columns, str):
-        columns = [columns]
-    
-    # Apply the mapping to convert state names to codes for each column
-    for column in columns:
-        df_copy[column] = df_copy[column].apply(
-            lambda x: state_mapping.get(x, x) if isinstance(x, str) else x
         )
     
     return df_copy

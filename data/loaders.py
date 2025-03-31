@@ -1,9 +1,17 @@
 import pandas as pd
-from .cleaning import clean_text_columns, replace_by_dictionary, prepare_for_tabpfn
-import constants
+from .cleaning import clean_text_columns, replace_by_dictionary, prepare_for_tabpfn, keep_only_columns
+import data.constants as constants
 
 def load_us_perm_visas(as_frame=False):
   data = pd.read_csv('./data/raw/us_perm_visas.csv', low_memory=False)
+
+  columns_to_keep = ["case_status","decision_date","employer_name","employer_city",
+          "employer_state","job_info_work_city","job_info_work_state","pw_soc_code"                
+          ,"pw_unit_of_pay_9089","pw_source_name_9089","pw_soc_title"               
+          ,"country_of_citizenship","class_of_admission" ,"pw_level_9089",
+          "pw_amount_9089","wage_offer_unit_of_pay_9089"]
+
+  data = keep_only_columns(data, columns_to_keep)
 
   # Removing all withdrawn applications
   data = data[data.case_status != 'Withdrawn']
@@ -32,24 +40,11 @@ def load_us_perm_visas(as_frame=False):
   data[categorical_columns] = data[categorical_columns].astype('category') 
 
   # Handle missing values
-  data = prepare_for_tabpfn(data)
+  # data = prepare_for_tabpfn(data)
 
-  # Create X and y
-  # X = data.drop('case_status', axis=1)
-  # X = data[["decision_date","employer_name","employer_city",
-  #         "employer_state","job_info_work_city","job_info_work_state","pw_soc_code"                
-  #         ,"pw_unit_of_pay_9089","pw_source_name_9089","pw_soc_title"               
-  #         ,"country_of_citizenship","class_of_admission" ,"pw_level_9089",
-  #         "pw_amount_9089","wage_offer_unit_of_pay_9089"]]
-
-  # Because we called prepare_for_tabpfn, which changed the datetime columns, we need to have a different selection of columns
-  X = data[["decision_date_year", "decision_date_month", "employer_name","employer_city",
-          "employer_state","job_info_work_city","job_info_work_state","pw_soc_code"                
-          ,"pw_unit_of_pay_9089","pw_source_name_9089","pw_soc_title"               
-          ,"country_of_citizenship","class_of_admission" ,"pw_level_9089",
-          "pw_amount_9089","wage_offer_unit_of_pay_9089"]]
-
-
-  y = data['case_status']
-
-  return X, y
+  if as_frame:
+      return data
+  else:
+      X = data.loc[:, data.columns != "case_status"]
+      y = data['case_status']
+      return X, y
