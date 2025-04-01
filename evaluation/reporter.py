@@ -1,10 +1,8 @@
 import mlflow
 
-def setup_mlflow(model_name="TabPFN", dataset_name="US Visa data", experiment_name="MLflow Quickstart"):
+def setup_mlflow(experiment_name="MLflow Quickstart"):
   mlflow.set_tracking_uri(uri="http://127.0.0.1:8080")
   mlflow.set_experiment(experiment_name)
-  mlflow.set_tag("Dataset", dataset_name)
-  mlflow.set_tag("model", model_name)
 
 def log_classification_report_metrics(report_dict):
     """
