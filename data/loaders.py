@@ -1,8 +1,8 @@
 import pandas as pd
-from .cleaning import clean_text_columns, replace_by_dictionary, prepare_for_tabpfn, keep_only_columns
+from .cleaning import clean_text_columns, replace_by_dictionary, keep_only_columns
 import data.constants as constants
 
-def load_us_perm_visas(as_frame=False, for_tabpfn=False):
+def load_us_perm_visas(as_frame=False):
   data = pd.read_csv('./data/raw/us_perm_visas.csv', low_memory=False)
 
   columns_to_keep = ["case_status","decision_date","employer_name","employer_city",
@@ -38,10 +38,6 @@ def load_us_perm_visas(as_frame=False, for_tabpfn=False):
 
   data[datetime_columns] = data[datetime_columns].apply(pd.to_datetime)
   data[categorical_columns] = data[categorical_columns].astype('category') 
-
-  # BAD! This preprocessing should be part of pipeline
-  if for_tabpfn:
-      data = prepare_for_tabpfn(data)
 
   if as_frame:
       return data

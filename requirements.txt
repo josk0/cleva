@@ -1,0 +1,6 @@
+tabpfn 
+catboost 
+scikit-learn 
+mlflow 
+matplotlib
+ipykernel
