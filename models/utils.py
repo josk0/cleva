@@ -3,7 +3,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 import numpy as np
-from models.preprocessors import DatetimeFeatureExtractor
+from models.preprocessors import DatetimeFeatureSplitter, DatetimeFeatureEncoder
 
 
 def get_pipeline(run):
@@ -15,7 +15,7 @@ def get_pipeline(run):
     print("RandomForest model detected.")
     preprocessor = ColumnTransformer(
         transformers=[
-            ('datetime', DatetimeFeatureExtractor(), make_column_selector(dtype_include='datetime64[ns]')),
+            ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='object'))
         ])
@@ -23,14 +23,14 @@ def get_pipeline(run):
     print("TabPFN model detected.")
     preprocessor = ColumnTransformer(
         transformers=[
-            ('datetime', DatetimeFeatureExtractor(), make_column_selector(dtype_include='datetime64[ns]')),
+            ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
         ])
   else:
     # Default preprocessing for unrecognized models
     print(f"Using default preprocessing for {run.model_name}")
     preprocessor = ColumnTransformer(
         transformers=[
-            ('datetime', DatetimeFeatureExtractor(), make_column_selector(dtype_include='datetime64[ns]')),
+            ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='object'))
         ])

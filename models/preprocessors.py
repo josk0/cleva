@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-class DatetimeFeatureExtractor(BaseEstimator, TransformerMixin):
+class DatetimeFeatureSplitter(BaseEstimator, TransformerMixin):
     """ Extract datetime columns into numerical columns with suffix _year, _month, _day respectively """
     def __init__(self):
         self.datetime_cols = None
@@ -45,9 +45,9 @@ class DatetimeFeatureEncoder(BaseEstimator, TransformerMixin):
             Whether to encode cyclical features (month, day, weekday, hour, etc.) using 
             sine/cosine transformation to preserve their cyclical nature.
         """
+        # Set default features to encode if none given
         self.features = features if features else [
-            'year', 'month', 'day', 'weekday', 'quarter', 'hour', 'minute',
-            'is_weekend', 'is_month_start', 'is_month_end', 'day_of_year'
+            'year', 'month', 'day', 'weekday'
         ]
         self.cyclical = cyclical
         self._cyclical_features = ['month', 'day', 'weekday', 'hour', 'minute', 'second', 'day_of_year']
@@ -67,22 +67,24 @@ class DatetimeFeatureEncoder(BaseEstimator, TransformerMixin):
     def transform(self, X):
         """Transform datetime columns into numerical features."""
         # # Ensure X is a pandas Series or a copy to avoid modifying the original
-        # X_copy = X.copy() if isinstance(X, pd.Series) else pd.Series(X)
+        X_copy = X.copy() if isinstance(X, pd.Series) else X.squeeze()
         # Handle both 1D and 2D arrays
-        if hasattr(X, 'iloc') and hasattr(X, 'copy'):  # It's already a pandas object
-            X_copy = X.copy()
-        else:
-            # Check if it's a 2D array with a single column and convert appropriately
-            if isinstance(X, np.ndarray) and X.ndim > 1:
-                if X.shape[1] == 1:
-                    X_copy = pd.Series(X.flatten())
-                else:
-                    raise ValueError(f"Expected array with 1 column, got shape {X.shape}")
-            else:
-                X_copy = pd.Series(X)
+        # if hasattr(X, 'iloc') and hasattr(X, 'copy'):  # It's already a pandas object
+        #     X_copy = X.copy()
+        #     print("already pandas!")
+        # else:
+        #     # Check if it's a 2D array with a single column and convert appropriately
+        #     if isinstance(X, np.ndarray) and X.ndim > 1:
+        #         print("2d array!")
+        #         if X.shape[1] == 1:
+        #             X_copy = pd.Series(X.flatten())
+        #         else:
+        #             raise ValueError(f"Expected array with 1 column, got shape {X.shape}")
+        #     else:
+        #         print("1d array!")
+        #         X_copy = pd.Series(X)
         
         # Convert string to datetime if needed
-        print(f"does this thing have datetimes? {pd.api.types.is_datetime64_any_dtype(X_copy)}")
         if not pd.api.types.is_datetime64_any_dtype(X_copy):
             X_copy = pd.to_datetime(X_copy, errors='coerce')
 
