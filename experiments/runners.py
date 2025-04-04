@@ -18,7 +18,7 @@ class run:
     print("trying get pipeline")
     self.pipe = get_pipeline(self)
     # self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.4, random_state=42)
-    self.X_train, self.X_test, self.y_train, self.y_test = self._split_data(self.X, self.y, test_size=0.4, random_state=42)
+    self.X_train, self.X_test, self.y_train, self.y_test = self._split_data(self.X, self.y, test_size=0.33, random_state=42)
 
     # Free up memory and avoid leaks after split
     del self.X

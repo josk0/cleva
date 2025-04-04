@@ -2,6 +2,22 @@ import pandas as pd
 from .cleaning import clean_text_columns, replace_by_dictionary, keep_only_columns
 import data.constants as constants
 
+def load_template(as_frame=False):
+   pass
+
+def load_credit_default(as_frame=False):
+    data = pd.read_excel('./data/raw/default of credit card clients.xls', index_col=0, header=1)
+
+    categorical_columns = ['SEX', 'EDUCATION', 'MARRIAGE', 'PAY_0', 'PAY_2', 'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6', 'default payment next month']
+    data[categorical_columns] = data[categorical_columns].astype('category') 
+
+    if as_frame:
+        return data
+    else:
+        X = data.loc[:, data.columns != 'default payment next month']
+        y = data['default payment next month']
+    return X, y
+
 def load_us_perm_visas(as_frame=False):
   data = pd.read_csv('./data/raw/us_perm_visas.csv', low_memory=False)
 

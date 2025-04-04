@@ -7,40 +7,46 @@ from models.preprocessors import DatetimeFeatureSplitter, DatetimeFeatureEncoder
 
 
 def get_pipeline(run):
-  if run is None:
-    raise ValueError("Run must be provided.")
+    if run is None:
+        raise ValueError("Run must be provided.")
   
-  # Create preprocessor based on model
-  if "RandomForest" in run.model_name:
-    print("RandomForest model detected.")
-    preprocessor = ColumnTransformer(
+    # Create preprocessor based on model
+    if "RandomForest" in run.model_name:
+        print("RandomForest model detected.")
         transformers=[
             ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='object'))
-        ])
-  elif "TabPFN" in run.model_name:
-    print("TabPFN model detected.")
-    preprocessor = ColumnTransformer(
+        ]
+    elif "CatBoost" in run.model_name:
+        print("CatBoost model detected.")
+        transformers=[
+            ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
+            ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64']))
+        ]
+    elif "TabPFN" in run.model_name:
+        print("TabPFN model detected.")
         transformers=[
             ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
-        ])
-  else:
-    # Default preprocessing for unrecognized models
-    print(f"Using default preprocessing for {run.model_name}")
-    preprocessor = ColumnTransformer(
+        ]
+    else:
+        # Default preprocessing for unrecognized models
+        print(f"Using default preprocessing for {run.model_name}")
         transformers=[
             ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='object'))
-        ])
-    
-  # Create classifier pipeline
-  clf = Pipeline(steps=[
-      ('preprocessor', preprocessor),
-      ('classifier', run.model)
-  ])
-  return clf
+        ]
+
+    # Create preprocessor
+    preprocessor = ColumnTransformer(transformers)
+
+    # Create classifier pipeline
+    clf = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('classifier', run.model)
+    ])
+    return clf
 
 
 def subsample_train_test_split(X, y, max_length=None, test_size=0.2, random_state=None, **kwargs):
