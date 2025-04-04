@@ -1,0 +1,11 @@
+tabpfn 
+catboost 
+scikit-learn 
+mlflow 
+matplotlib
+ipykernel
+ipywidgets
+xlrd
+mlxp
+kagglehub
+ucimlrepo
