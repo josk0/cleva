@@ -1,4 +1,4 @@
-"""The run class to prepare model and data together, exposing behavior for fit, predict, and score"""
+"""The Run class to prepare model and data together, exposing behavior for fit, predict, and score"""
 
 from models.utils import get_pipeline, subsample_train_test_split
 from evaluation.metrics import plot_roc_curve
