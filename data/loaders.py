@@ -1,6 +1,7 @@
 """Methods that load datasets, perform basic cleaning, and return frame or X,y"""
 
 import pandas as pd
+import numpy as np
 from .cleaning import clean_text_columns, replace_by_dictionary, keep_only_columns
 import data.constants as constants
 from functools import cache
@@ -11,6 +12,7 @@ def load_credit_default(as_frame=False):
     # data source: https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients
     data = pd.read_excel('./data/raw/default of credit card clients.xls', index_col=0, header=1)
 
+    # Commented out but kept for reference
     # categorical_columns = ['SEX', 'EDUCATION', 'MARRIAGE', 'PAY_0', 'PAY_2', 'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6', 'default payment next month']
     # data[categorical_columns] = data[categorical_columns].astype('category') 
 
@@ -23,6 +25,8 @@ def load_credit_default(as_frame=False):
 
 @cache
 def load_us_perm_visas(as_frame=False):
+    """ Load US Permanent Visa Applications data """
+    # data source: https://www.kaggle.com/datasets/jboysen/us-perm-visas
     data = pd.read_csv('./data/raw/us_perm_visas.csv', low_memory=False)
 
     columns_to_keep = ["case_status","decision_date","employer_name","employer_city",
@@ -67,12 +71,12 @@ def load_us_perm_visas(as_frame=False):
     # 1. Remove commas
     data[numerical_columns] = data[numerical_columns].replace(',', '', regex=True)
     
-    # 2. Remove missing and infitite values (TabPFN doesn't like these)
-    data[numerical_columns] = data[numerical_columns].replace('NA', '', regex=True)
-    data[numerical_columns] = data[numerical_columns].replace('inf', '', regex=True)
-    
-    # 3. Convert to float (to handle decimal points)
-    data[numerical_columns] = data[numerical_columns].astype(float) # not sure: could also transform to int64 (after np.floor), since most values don't have decimals
+    # 2. Better handling of NA values and infinities
+    for col in numerical_columns:
+        # Replace problematic strings with NaN
+        data[col] = data[col].replace(['NA', 'inf', '-inf', ''], np.nan)
+        # Convert to float
+        data[col] = pd.to_numeric(data[col], errors='coerce')
 
     if as_frame:
         return data
