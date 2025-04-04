@@ -1,3 +1,5 @@
+"""Methods used by loaders to do basic data cleaning"""
+
 def keep_only_columns(df, to_keep):
     """
     Keep only specified columns in a dataframe.

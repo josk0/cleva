@@ -1,11 +1,11 @@
+"""Methods that load datasets, perform basic cleaning, and return frame or X,y"""
+
 import pandas as pd
-import numpy as np
 from .cleaning import clean_text_columns, replace_by_dictionary, keep_only_columns
 import data.constants as constants
+from functools import cache
 
-def load_template(as_frame=False):
-   pass
-
+@cache
 def load_credit_default(as_frame=False):
     """ Load Taiwanese Credit Deafult data """
     # data source: https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients
@@ -21,7 +21,7 @@ def load_credit_default(as_frame=False):
         y = data['default payment next month']
     return X, y
 
-
+@cache
 def load_us_perm_visas(as_frame=False):
     data = pd.read_csv('./data/raw/us_perm_visas.csv', low_memory=False)
 
@@ -66,18 +66,13 @@ def load_us_perm_visas(as_frame=False):
     # Deal with numerical columns
     # 1. Remove commas
     data[numerical_columns] = data[numerical_columns].replace(',', '', regex=True)
-
-    # 2. Convert to float first (to handle decimal points)
-    data[numerical_columns] = data[numerical_columns].astype(float)
-
-    # 3. Truncate decimals (remove everything after decimal point)
-    data[numerical_columns] = data[numerical_columns].apply(np.floor)
-
-    # 4. Fill missing values with 0
-    data[numerical_columns] = data[numerical_columns].fillna(0) # Should move this to the pipeline
-
-    # 5. Convert to int64
-    data[numerical_columns] = data[numerical_columns].astype('int64')
+    
+    # 2. Remove missing and infitite values (TabPFN doesn't like these)
+    data[numerical_columns] = data[numerical_columns].replace('NA', '', regex=True)
+    data[numerical_columns] = data[numerical_columns].replace('inf', '', regex=True)
+    
+    # 3. Convert to float (to handle decimal points)
+    data[numerical_columns] = data[numerical_columns].astype(float) # not sure: could also transform to int64 (after np.floor), since most values don't have decimals
 
     if as_frame:
         return data

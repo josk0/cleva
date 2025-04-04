@@ -1,3 +1,5 @@
+"""Custom classes used in sklean pipeline"""
+
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -27,7 +29,7 @@ class DatetimeFeatureSplitter(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None):
         return self.fit(X, y).transform(X)
 
-# A class to encode datetime features cyclically, not sure if it actually works
+
 class DatetimeFeatureEncoder(BaseEstimator, TransformerMixin):
     def __init__(self, features=None, cyclical=True):
         """
@@ -65,7 +67,7 @@ class DatetimeFeatureEncoder(BaseEstimator, TransformerMixin):
     
     def transform(self, X):
         """Transform datetime columns into numerical features."""
-        # # Ensure X is a pandas Series or a copy to avoid modifying the original
+        # Ensure X is a pandas Series or a copy to avoid modifying the original
         X_copy = X.copy() if isinstance(X, pd.Series) else X.squeeze()
         # Handle both 1D and 2D arrays
         # if hasattr(X, 'iloc') and hasattr(X, 'copy'):  # It's already a pandas object

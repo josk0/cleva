@@ -1,3 +1,5 @@
+"""Methods to calculate metrics —— NOT USED CURRENTLY"""
+
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 import matplotlib.pyplot as plt
 import numpy as np

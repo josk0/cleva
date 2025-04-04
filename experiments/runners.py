@@ -1,8 +1,10 @@
+"""The run class to prepare model and data together, exposing behavior for fit, predict, and score"""
+
 from models.utils import get_pipeline, subsample_train_test_split
 from evaluation.metrics import plot_roc_curve
-# import evaluation.reporter as reporter
+# import evaluation.reporter as reporter # <-- not working, will maybe scrap
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, f1_score, classification_report
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 import matplotlib.pyplot as plt
 
 
@@ -42,22 +44,14 @@ class run:
 
   def score(self):
     report_dict = classification_report(self.y_test, self.predictions, output_dict=True)
-    # Print accuracy
     print(f"Accuracy: {report_dict['accuracy']:.4f}")
-
-    # Print macro avg F1 score
     print(f"F1 Score (macro avg): {report_dict['macro avg']['f1-score']:.4f}")
-    
-    # print("Accuracy", accuracy_score(self.y_test, self.predictions))
-    # # Calculate and print F1 score
-    # print("F1 Score:", f1_score(self.y_test, self.predictions, average='macro'))
 
     # Classification Report
     print("\nClassification Report:")
     print(classification_report(self.y_test, self.predictions, digits=3, output_dict=False))
 
-    # Reporting not working currently
-    # 
+    # Reporting not working currently, MLflow integration
     # reporter.log_classification_report_metrics(report_dict)
 
     # Create confusion matrix plot
@@ -69,9 +63,9 @@ class run:
     plt.savefig("confusion_matrix.png")
     # mlflow.log_artifact("confusion_matrix.png")
 
-    # Draw and show ROC Plot
-    roc_plot = plot_roc_curve(self.y_test, self.prob_predictions)
-    roc_plot.show()
+    # Draw and show ROC Plot -- not working, need to fix dimensions of array
+    # roc_plot = plot_roc_curve(self.y_test, self.prob_predictions)
+    # roc_plot.show()
 
   def _split_data(self, X, y, test_size=0.5, random_state=42):
     if self.model_max_sample_length is not None:

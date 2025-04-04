@@ -1,3 +1,5 @@
+"""Methods used by runners"""
+
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, TargetEncoder
 from sklearn.pipeline import Pipeline
@@ -17,7 +19,7 @@ def get_pipeline(run):
         transformers=[
             ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
             ('cat high c', TargetEncoder(), make_column_selector(dtype_include='object')),
-            # ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])), # no need to scale numerical columns for RandomForest
+            ('num',SimpleImputer(strategy='constant', fill_value=0), make_column_selector(dtype_include=['int64', 'float64'])), # no need to scale numerical columns for RandomForest
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='category'))
             # ('pass', 'passthrough', make_column_selector(dtype_exclude=['datetime64']))
         ]
@@ -32,7 +34,7 @@ def get_pipeline(run):
         print("TabPFN model detected.")
         transformers=[
             ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
-            ('num', SimpleImputer(strategy='mean'), make_column_selector(dtype_include=['int64', 'float64'])),
+            ('num', SimpleImputer(strategy='mean'), make_column_selector(dtype_include=['int64', 'float64'])), # Here we see the limit of the approach: different strategy between models
             ('cat', SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include='category')),
             ('cat high cardinality', SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include='object')),
             # todo: this isn't great, having to impute values for TabPFN. But the model otherwise had issues with missing variables. 

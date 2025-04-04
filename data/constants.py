@@ -1,3 +1,5 @@
+"""Constants used by loaders in basic data cleaning"""
+
 # Dictionary mapping state names to their two-letter codes
 # used in: US Visa Data
 state_name_to_code_map = {

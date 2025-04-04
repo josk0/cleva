@@ -1,3 +1,4 @@
+"""Method for logging —— NOT USED CURRENTLY"""
 import mlflow
 
 def setup_mlflow(experiment_name="MLflow Quickstart"):
