@@ -1,3 +1,13 @@
-# Tasks
-- Should use `LabelEncoder` in preprocessing to encode string features numerically?
+# todo
+- print info / number of features in `X_train` (just to check what came through the pipeline)
+- parameterize the subsampler for training data (for increasing subsample experiments)
+- chunk-sample over test data (to get results on all test data even for TabPFN)
+- Check: Validity of existing pipeline templates
+- Learn: should use `LabelEncoder` in preprocessing to encode string features numerically? For ordinal categorical features with a meaningful order
 - add parameters for models to pass through, e.g. `RandomForestClassifier(n_estimators=200)`
+- Build experiment setup using [MLXP](https://github.com/inria-thoth/mlxp)
+- build saving run results as CSV or so
+- place artifacts and results in sensible output path in outputs/
+- build reporter — or link things into MLflow again
+- Port cleaner and preprocessing for BAM data from Dan's project
+- Build CatBoost pipeline and other functionality

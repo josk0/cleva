@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class DatetimeFeatureSplitter(BaseEstimator, TransformerMixin):
-    """ Extract datetime columns into numerical columns with suffix _year, _month, _day respectively """
+    """ Split datetime columns into numerical columns with name suffix _year, _month, _day respectively """
     def __init__(self):
         self.datetime_cols = None
     
@@ -19,9 +19,8 @@ class DatetimeFeatureSplitter(BaseEstimator, TransformerMixin):
             X_transformed[f'{col}_year'] = X[col].dt.year
             X_transformed[f'{col}_month'] = X[col].dt.month
             X_transformed[f'{col}_day'] = X[col].dt.day
-            # Add more features as needed
         
-        # Drop original datetime columns if desired
+        # Drop original datetime columns
         X_transformed = X_transformed.drop(columns=self.datetime_cols)
         return X_transformed
     
