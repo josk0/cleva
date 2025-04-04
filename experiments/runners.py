@@ -47,7 +47,6 @@ class Run:
     """Make predictions on test data or provided data
     
     Args:
-        X: Optional input data. If None, uses self.X_test
         classes_only: If True, only return class predictions, not probabilities
         
     Returns:
@@ -80,7 +79,7 @@ class Run:
 
     # Classification Report
     print("\nClassification Report:")
-    print(classification_report(self.y_test, self.predictions, digits=3, output_dict=False))
+    print(classification_report(self.y_test, self.predictions, digits=2, output_dict=False))
 
     # Reporting not working currently, MLflow integration
     # reporter.log_classification_report_metrics(report_dict)

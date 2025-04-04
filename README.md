@@ -1,4 +1,4 @@
-# Data Science Classification Pipeline
+# Classification Evaluation (cleva)
 
 A framework for training, evaluating, and comparing machine learning models on classification tasks.
 
@@ -28,6 +28,7 @@ A framework for training, evaluating, and comparing machine learning models on c
 - Build CatBoost pipeline
 
 ### experiments.runners
+- Something about the data split is not working: We should try and ignore the train-test ratio and use more test data if the model limits aren't reached (instead of not using some data, which is what we're doing now)
 - print info / number of features in `X_train` (just to check what came through the pipeline)
 - add parameters for models to pass through, e.g. `RandomForestClassifier(n_estimators=200)`
 - parameterize the subsampler for training data (for increasing subsample experiments)
