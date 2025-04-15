@@ -61,7 +61,7 @@ class Run:
         Returns:
             self: For method chaining
         """
-        print(f"Fitting {self.model_name} on {len(self.X_train)} samples...")
+        print(f"Fitting {self.model_name} on {len(self.X_train)} samples with {len(self.X_train.columns)} features ...")
         self.pipe.fit(self.X_train, self.y_train)
         print(f"DONE: {self.model_name} fit")
         return self
