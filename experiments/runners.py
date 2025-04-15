@@ -36,8 +36,7 @@ class Run:
         
         print("Loading data...")
         self.X, self.y = data_loader()
-        print(f"Loaded {len(self.X)} samples with {len(self.X.columns)} features.")
-        print(f"And length of Y is: {len(self.y)}")
+        print(f"Loaded {len(self.X)} samples with {len(self.X.columns)} features and {len(np.unique(self.y))} unique classes.")
 
         print(f"Splitting data for {self.model_name}...")
         self.X_train, self.X_test, self.y_train, self.y_test = self._split_data(
