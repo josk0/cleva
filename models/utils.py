@@ -68,7 +68,7 @@ def get_pipeline(run):
     return clf
 
 
-def subsample_train_test_split(X, y, max_length=None, test_size=0.2, random_state=None, **kwargs):
+def bounded_train_test_split(X, y, max_length=None, test_size=0.2, random_state=None, **kwargs):
     """
     Wrapper for train_test_split that ensures no split exceeds max_length.
     
@@ -85,7 +85,7 @@ def subsample_train_test_split(X, y, max_length=None, test_size=0.2, random_stat
     random_state : int or None
         Random seed (passed to train_test_split)
     **kwargs : 
-        Additional arguments passed to train_test_split
+        Additional arguments passed to train_test_split (e.g., stratify)
         
     Returns:
     --------
@@ -98,32 +98,57 @@ def subsample_train_test_split(X, y, max_length=None, test_size=0.2, random_stat
     
     # Calculate how many samples we can use in total
     total_usable = min(len(X), max_length * 2)  # Max we can use while respecting max_length
-    
+
+    X_subset, y_subset = X, y # Initialize with full data
+    stratify_arg = kwargs.get('stratify') # Get potential stratify argument
+
     if total_usable < len(X):
         # Subsample the data before splitting if needed
-        indices = np.random.RandomState(random_state).choice(
-            len(X), size=total_usable, replace=False)
+        rng = np.random.RandomState(random_state)
+        indices = rng.choice(len(X), size=total_usable, replace=False)
+
+        # Use .iloc for pandas, slicing for numpy
         X_subset = X.iloc[indices] if hasattr(X, 'iloc') else X[indices]
+        # Ensure y_subset matches X_subset
         y_subset = y.iloc[indices] if hasattr(y, 'iloc') else y[indices]
-    else:
-        X_subset, y_subset = X, y
-    
-    # Now split the subsampled data
+
+    # --- Prepare arguments for train_test_split ---
+    split_kwargs = kwargs.copy() # Avoid modifying original kwargs dict
+
+    # *** FIX for Stratify ***
+    # If stratification was requested, update the stratify argument
+    # to use the actual subset of y that corresponds to X_subset.
+    if stratify_arg is not None:
+         # Check if y_subset has the same length as X_subset, if not, maybe raise error or warning
+        if len(y_subset) != len(X_subset):
+             raise ValueError(f"Internal Error: Length mismatch between X_subset ({len(X_subset)}) and y_subset ({len(y_subset)}) after subsampling.")
+        split_kwargs['stratify'] = y_subset
+    # *************************
+
+    # Now split the (potentially subsampled) data
     X_train, X_test, y_train, y_test = train_test_split(
-        X_subset, y_subset, test_size=test_size, random_state=random_state, **kwargs)
-    
-    # Double-check that each split is below max_length
-    # (might be needed if test_size was very small or large)
+        X_subset, y_subset,
+        test_size=test_size,
+        random_state=random_state,
+        **split_kwargs # Pass potentially modified kwargs (with corrected stratify)
+    )
+
+    # --- Post-Split Truncation (Original logic - with potential stratification issue) ---
+    # This truncation happens *after* the split and can break stratification.
+    # Consider if this truncation is acceptable or if the initial sampling
+    # should be more precise to avoid this step.
+    rng_trunc = np.random.RandomState(random_state) # Use same seed for deterministic truncation
+
     if len(X_train) > max_length:
-        idx = np.random.RandomState(random_state).choice(
-            len(X_train), size=max_length, replace=False)
-        X_train = X_train.iloc[idx] if hasattr(X_train, 'iloc') else X_train[idx]
-        y_train = y_train.iloc[idx] if hasattr(y_train, 'iloc') else y_train[idx]
-    
+        print(f"Warning: Training set ({len(X_train)}) exceeded max_length ({max_length}) after split. Truncating randomly.")
+        idx_train = rng_trunc.choice(len(X_train), size=max_length, replace=False)
+        X_train = X_train.iloc[idx_train] if hasattr(X_train, 'iloc') else X_train[idx_train]
+        y_train = y_train.iloc[idx_train] if hasattr(y_train, 'iloc') else y_train[idx_train]
+
     if len(X_test) > max_length:
-        idx = np.random.RandomState(random_state).choice(
-            len(X_test), size=max_length, replace=False)
-        X_test = X_test.iloc[idx] if hasattr(X_test, 'iloc') else X_test[idx]
-        y_test = y_test.iloc[idx] if hasattr(y_test, 'iloc') else y_test[idx]
-    
+        print(f"Warning: Test set ({len(X_test)}) exceeded max_length ({max_length}) after split. Truncating randomly.")
+        idx_test = rng_trunc.choice(len(X_test), size=max_length, replace=False)
+        X_test = X_test.iloc[idx_test] if hasattr(X_test, 'iloc') else X_test[idx_test]
+        y_test = y_test.iloc[idx_test] if hasattr(y_test, 'iloc') else y_test[idx_test]
+
     return X_train, X_test, y_train, y_test
