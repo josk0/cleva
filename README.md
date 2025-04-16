@@ -23,7 +23,7 @@ A framework for training, evaluating, and comparing machine learning models on c
 
 ### models.utils
 - [ ] Check: Validity of existing pipeline templates
-- [ ] `UserWarning: Skipping features without any observed values: ['country_of_citizenship']. At least one non-missing value is needed for imputation with strategy='most_frequent'.`
+- [x] `UserWarning: Skipping features without any observed values: ['country_of_citizenship']. At least one non-missing value is needed for imputation with strategy='most_frequent'.`
 - [ ] split up logic of `get_pipeline` into two parts: imputation and encoding. Encoding should change only with the model but not dataset. - Imputation changes with dataset, may or may not depend on model? 
 - [ ] Learn: should use `LabelEncoder` in preprocessing to encode string features numerically? For ordinal categorical features with a meaningful - order
 - [ ] Build CatBoost pipeline

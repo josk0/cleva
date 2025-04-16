@@ -34,7 +34,7 @@ def load_credit_default(as_frame=False):
     return X, y
 
 @cache
-def load_us_perm_visas(as_frame=False):
+def load_us_perm_visas(as_frame=False, shuffle_data=True, random_state=42):
     """ Load US Permanent Visa Applications data """
     # data source: https://www.kaggle.com/datasets/jboysen/us-perm-visas
 
@@ -50,10 +50,10 @@ def load_us_perm_visas(as_frame=False):
     else:
         raise FileNotFoundError(f"The file {file_path} does not exist.")
 
-    columns_to_keep = ["case_status","decision_date","employer_name","employer_city",
-            "employer_state","job_info_work_city","job_info_work_state","pw_soc_code"                
-            ,"pw_unit_of_pay_9089","pw_source_name_9089","pw_soc_title"               
-            ,"country_of_citizenship","class_of_admission" ,"pw_level_9089",
+    columns_to_keep = ["case_status", "decision_date", "employer_name", "employer_city",
+            "employer_state", "job_info_work_city", "job_info_work_state", "pw_soc_code", 
+            "pw_unit_of_pay_9089", "pw_source_name_9089", "pw_soc_title",               
+            "country_of_citizenship", "class_of_admission", "pw_level_9089",
             "pw_amount_9089"]
 
     data = keep_only_columns(data, columns_to_keep)
@@ -89,7 +89,6 @@ def load_us_perm_visas(as_frame=False):
                             'pw_source_name_9089',
                             'pw_level_9089'
                             ]
-    
     numerical_columns = ['pw_amount_9089']
 
     data[datetime_columns] = data[datetime_columns].apply(pd.to_datetime)
@@ -105,6 +104,17 @@ def load_us_perm_visas(as_frame=False):
         data[col] = data[col].replace(['NA', 'inf', '-inf', ''], np.nan)
         # Convert to float
         data[col] = pd.to_numeric(data[col], errors='coerce')
+
+    # Reset index to make it sequential again (after dropping rows)
+    data = data.reset_index(drop=True)
+
+    # Shuffle to avoid that all the missing values are clustered together
+    #   this avoids a problem specifically with 'country_of_citizenship'
+    #   in which all missing values are in the first 19k rows
+    #   which, in turn, creates a probem for imputers in the pipeline
+    if shuffle_data:
+        data = data.sample(frac=1, random_state=random_state).reset_index(drop=True)
+    
 
     if as_frame:
         return data
