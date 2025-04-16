@@ -70,6 +70,13 @@ def load_us_perm_visas(as_frame=False):
     # Strip and lowercase all text columns
     data = clean_text_columns(data)
 
+    # Transform label from string to binary 
+    #   Some scoring functions require clear indentification of positive class
+    #   We opt into no downcasting and set the int type explicitly
+    pd.set_option('future.no_silent_downcasting', True)
+    data['case_status'] = data['case_status'].replace({'certified': 1, 'denied': 0})
+    data['case_status'] = data['case_status'].astype(int)
+
     # Standardize entries in some columns 
     data = replace_by_dictionary(data, constants.state_name_to_code_map, ['employer_state', 'job_info_work_state']) # Standardize state codes
     data = replace_by_dictionary(data, constants.time_period_to_abbreviation_map, ['pw_unit_of_pay_9089']) # Standardize time periods
