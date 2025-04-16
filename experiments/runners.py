@@ -5,14 +5,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report
 
 from models.utils import get_pipeline, bounded_train_test_split
 from evaluation.metrics import plot_roc_curve
 
 
-class Run:
+class BasicRun:
     """Class to manage model experiments including data preparation, training, and evaluation."""
     
     def __init__(
@@ -39,11 +38,16 @@ class Run:
         print(f"Loaded {len(self.X)} samples with {len(self.X.columns)} features and {len(np.unique(self.y))} unique classes.")
 
         print(f"Splitting data for {self.model_name}...")
-        self.X_train, self.X_test, self.y_train, self.y_test = self._split_data(
-            self.X, self.y, test_size=0.33, random_state=42
+        self.X_train, self.X_test, self.y_train, self.y_test = bounded_train_test_split(
+            self.X, 
+            self.y, 
+            max_length=self.model_max_sample_length,  # Limit samples if needed
+            test_size=0.33, 
+            random_state=42,
+            stratify=self.y if len(np.unique(self.y)) < 10 else None  # Stratify if not too many classes
         )
 
-        # Free up memory after split
+        # Free up memory and prevent leakage after split
         del self.X
         del self.y
 
@@ -54,7 +58,7 @@ class Run:
         self.predictions = None
         self.prob_predictions = None
 
-    def fit(self) -> 'Run':
+    def fit(self) -> 'BasicRun':
         """
         Fit the model to the training data.
         
@@ -118,40 +122,3 @@ class Run:
         confusion_matrix_file = f"confusion_matrix_{self.model_name}.png"
         plt.savefig(confusion_matrix_file)
         plt.close(fig)
-
-    def _split_data(
-        self, 
-        X: pd.DataFrame, 
-        y: np.ndarray, 
-        test_size: float = 0.5, 
-        random_state: int = 42
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, np.ndarray, np.ndarray]:
-        """
-        Split data into train and test sets based on model constraints.
-        
-        Args:
-            X: Feature data
-            y: Target data
-            test_size: Proportion of data to use for testing
-            random_state: Random seed for reproducibility
-            
-        Returns:
-            X_train, X_test, y_train, y_test: Split data
-        """
-        if self.model_max_sample_length is not None:
-            # Use the version for models like TabPFN that have a limited sample length
-            return bounded_train_test_split(
-                X, y, 
-                max_length=self.model_max_sample_length,  
-                test_size=test_size, 
-                random_state=random_state,
-                stratify=y if len(np.unique(y)) < 10 else None  # Stratify if not too many classes
-            )
-        else:
-            # Use regular train_test_split for other models
-            return train_test_split(
-                X, y, 
-                test_size=test_size, 
-                random_state=random_state,
-                stratify=y if len(np.unique(y)) < 10 else None  # Stratify if not too many classes
-            )

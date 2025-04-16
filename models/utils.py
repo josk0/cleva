@@ -1,5 +1,6 @@
 """Methods used by runners"""
 
+from typing import Any, Optional, Union
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, TargetEncoder
 from sklearn.pipeline import Pipeline
@@ -10,63 +11,97 @@ import math
 from models.preprocessors import DatetimeFeatureSplitter, DatetimeFeatureEncoder
 
 
-def get_pipeline(run):
-    if run is None:
-        raise ValueError("Run must be provided.")
-  
+def get_pipeline(
+    run_or_model_name: Union[str, Any],
+    model: Optional[Any] = None
+) -> Pipeline:
+    """
+    Create a preprocessing pipeline based on the model type.
+
+    Parameters
+    ----------
+    run_or_model_name : Union[str, Any]
+        Either a run object that has a model_name attribute, or a string
+        specifying the model name directly.
+    model : Any, optional
+        The model instance to use in the pipeline. Required when run_or_model_name
+        is a string.
+
+    Returns
+    -------
+    Pipeline
+        A scikit-learn pipeline with appropriate preprocessing steps for the model.
+
+    Raises
+    ------
+    ValueError
+        If inputs are invalid or incomplete.
+    """
+    # Determine model_name and model
+    if isinstance(run_or_model_name, str):
+        # Direct model name provided
+        model_name = run_or_model_name
+        if model is None:
+            raise ValueError("When providing a model name as string, the model parameter must also be provided.")
+    else:
+        # Assume it's a run object
+        run = run_or_model_name
+        if run is None:
+            raise ValueError("Run must be provided.")
+        model_name = run.model_name
+        model = run.model
+
     # Create preprocessor based on model
-    if "RandomForest" in run.model_name:
+    if "RandomForest" in model_name:
         print("RandomForest model detected.")
-        transformers=[
+        transformers = [
             ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
-            ('cat high c', TargetEncoder(), make_column_selector(dtype_include='object')),
-            ('num',SimpleImputer(strategy='constant', fill_value=0), make_column_selector(dtype_include=['int64', 'float64'])), # no need to scale numerical columns for RandomForest
+            ('cat_high_c', TargetEncoder(), make_column_selector(dtype_include='object')),
+            # No need to scale numerical columns for RandomForest
+            ('num', SimpleImputer(strategy='constant', fill_value=0), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='category'))
             # ('pass', 'passthrough', make_column_selector(dtype_exclude=['datetime64']))
         ]
-    elif "CatBoost" in run.model_name:
+    elif "CatBoost" in model_name:
         print("CatBoost model detected.")
-        transformers=[
+        transformers = [
             ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
-            ('pass', 'passthrough', make_column_selector(dtype_exclude=['datetime64', 'int64', 'float64']))
+            ('pass', 'passthrough', make_column_selector(dtype_exclude='datetime64[ns]'))
         ]
-    elif "TabPFN" in run.model_name:
+    elif "TabPFN" in model_name:
         print("TabPFN model detected.")
-        transformers=[
+        transformers = [
             ('datetime', DatetimeFeatureSplitter(), make_column_selector(dtype_include='datetime64[ns]')),
-            ('num', SimpleImputer(strategy='mean'), make_column_selector(dtype_include=['int64', 'float64'])), # Here we see the limit of the approach: different strategy between models
+            # Different imputation strategy for this model
+            ('num', SimpleImputer(strategy='mean'), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include='category')),
             ('cat high cardinality', SimpleImputer(strategy='most_frequent'), make_column_selector(dtype_include='object')),
-            # todo: this isn't great, having to impute values for TabPFN. But the model otherwise had issues with missing variables. 
+            # todo: this isn't great, having to impute values for TabPFN. But the model otherwise had issues with missing variables.
             # I think TabPFN expects missing values to be formatted in a certain way. Here it got an NA type or so in what it expected to be a str column
-
         ]
     else:
         # Default preprocessing for unrecognized models
-        print(f"Using default preprocessing for {run.model_name}")
-        transformers=[
+        print(f"Using default preprocessing for {model_name}")
+        transformers = [
             ('datetime', DatetimeFeatureEncoder(), make_column_selector(dtype_include='datetime64[ns]')),
             ('num', StandardScaler(), make_column_selector(dtype_include=['int64', 'float64'])),
             ('cat', OneHotEncoder(handle_unknown='ignore'), make_column_selector(dtype_include='category')),
-            ('cat high c', TargetEncoder(), make_column_selector(dtype_include='object'))
+            ('cat_high_c', TargetEncoder(), make_column_selector(dtype_include='object'))
         ]
 
-    # Create preprocessor
-    if any(transformers):
-        preprocessor = ColumnTransformer(
-            transformers,
-            remainder='passthrough'
-        )
+    # Create and return pipeline
+    preprocessor = ColumnTransformer(
+        transformers,
+        remainder='passthrough'
+    )
+
         # Create classifier pipeline
-        clf = Pipeline(steps=[
+    return Pipeline(steps=[
             ('preprocessor', preprocessor),
-            ('classifier', run.model)
+            ('classifier', model)
         ])
-    else: # If no preprocessors, pipeline is just the model itself
-        clf = run.model
-        
-    return clf
+
 
 
 def bounded_train_test_split(
